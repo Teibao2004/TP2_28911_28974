@@ -15,7 +15,7 @@ const config = {
         update: update
     }
 };
-
+ 
 const game = new Phaser.Game(config);
 
 let score1 = 0;
@@ -23,7 +23,7 @@ let score2 = 0;
 let scoreText1;
 let scoreText2;
 let timerText;
-let gameTime = 180; // Tempo de jogo em segundos (3 minutos)
+let gameTime = 180; // Tempo de jogo em segundos (3 minutos) 
 let gameOver = false;
 let playAgainKey;
 const speedX = 300; // Velocidade ajustada proporcionalmente
@@ -35,6 +35,7 @@ function preload() {
     this.load.image('puck', 'assets/puck.png');
     this.load.image('mallet1', 'assets/mallet1.png');
     this.load.image('mallet2', 'assets/mallet2.png');
+    this.load.spritesheet('explosion', 'assets/explosion.png', { frameWidth: 64, frameHeight: 64 });
 }
 
 function create() {
@@ -51,19 +52,33 @@ function create() {
     graphics.closePath();
     graphics.strokePath();
 
-    // Adicionar balizas maiores e centradas
-    this.leftGoal = this.add.rectangle(40, 300, 10, 200, 0xff0000).setOrigin(0, 0.5);
-    this.physics.add.existing(this.leftGoal, true); // Baliza esquerda (estática)
-    this.rightGoal = this.add.rectangle(850, 300, 10, 200, 0xff0000).setOrigin(0, 0.5);
-    this.physics.add.existing(this.rightGoal, true); // Baliza direita (estática)
+    // Função para adicionar balizas e armazená-las numa lista
+    this.goals = [];
+    function addGoals(x, yStart, yEnd, step) {
+        for (let y = yStart; y <= yEnd; y += step + 4) {
+            let goal = this.add.rectangle(x, y + 8, 8, step, 0xff0000).setOrigin(0.5, 0.5);
+            this.physics.add.existing(goal, true);
+            goal.state = 'red'; // Estado inicial da baliza 
+            this.goals.push(goal);
+        }
+    }
+
+    // Adicionar balizas na lateral esquerda
+    addGoals.call(this, 45, 75, 525, 50);
+
+    // Adicionar balizas na lateral direita
+    addGoals.call(this, 855, 75, 525, 50);
 
     // Adicionar barreiras invisíveis para impedir que a bola saia do campo
-    this.barrierLeft = this.add.rectangle(35, 300, 20, 500).setOrigin(0, 0.5);
+    this.barrierLeft = this.add.rectangle(31, 300, 18, 500).setOrigin(0, 0.5);
     this.physics.add.existing(this.barrierLeft, true);
-    this.barrierRight = this.add.rectangle(855, 300, 20, 500).setOrigin(0, 0.5);
+
+    this.barrierRight = this.add.rectangle(852, 300, 18, 500).setOrigin(0, 0.5);
     this.physics.add.existing(this.barrierRight, true);
+
     this.barrierTop = this.add.rectangle(450, 45, 820, 10).setOrigin(0.5, 0);
     this.physics.add.existing(this.barrierTop, true);
+
     this.barrierBottom = this.add.rectangle(450, 555, 820, 10).setOrigin(0.5, 0);
     this.physics.add.existing(this.barrierBottom, true);
 
@@ -81,12 +96,13 @@ function create() {
     // Configurar colisões
     this.physics.add.collider(this.puck, this.mallet1, hitMallet, null, this);
     this.physics.add.collider(this.puck, this.mallet2, hitMallet, null, this);
-    this.physics.add.overlap(this.puck, this.leftGoal, goal, null, this);
-    this.physics.add.overlap(this.puck, this.rightGoal, goal, null, this);
+
+    // Adicionar overlap para as balizas
+    this.physics.add.overlap(this.puck, this.goals, hitGoal, null, this);
 
     // Adicionar texto de pontuação
     scoreText1 = this.add.text(16, 16, 'Jogador 1: 0', { fontSize: '32px', fill: '#FFF' });
-    scoreText2 = this.add.text(660, 16, 'Jogador 2: 0', { fontSize: '32px', fill: '#FFF' }); // Ajustado para estar visível
+    scoreText2 = this.add.text(660, 16, 'Jogador 2: 0', { fontSize: '32px', fill: '#FFF' });
     timerText = this.add.text(450, 16, 'Tempo: 180', { fontSize: '32px', fill: '#FFF' }).setOrigin(0.5, 0);
 
     // Configurar controles
@@ -136,6 +152,57 @@ function hitMallet(puck, mallet) {
     }
 }
 
+function hitGoal(puck, goal) {
+    // Mudar a cor da baliza baseada no estado atual
+    if (goal.state === 'red') {
+        goal.setFillStyle(0xffff00); // Amarelo
+        goal.state = 'yellow';
+    } else if (goal.state === 'yellow') {
+        goal.setFillStyle(0x000000); // Mudar para preto
+        goal.state = 'black';
+    
+        // Criar a animação da explosão se não foi criada ainda
+        if (!this.anims.exists('explode')) {
+            this.anims.create({
+                key: 'explode',
+                frames: this.anims.generateFrameNumbers('explosion', { start: 0, end: 5 }),
+                frameRate: 16,
+                repeat: 0,
+                hideOnComplete: true
+            });
+        }
+    
+        // Exibir a explosão na posição da baliza
+        explosion = this.add.sprite(goal.x + 16, goal.y, 'explosion');
+        explosion.setVisible(true);
+        explosion.play('explode'); // Iniciar a animação de explosão
+        explosion.setScale(0.7);
+        explosion.angle = 90; 
+    
+        explosion.play('explode');
+        explosion.once('animationcomplete', () => {
+            explosion.destroy(); // Destruir o sprite após a animação completar
+        });
+    }else if (goal.state === 'black') {
+        // Marcar um ponto para o jogador apropriado
+        if (goal.x < 450) {
+            score2 += 1; // Golo para o jogador 2
+            scoreText2.setText('Jogador 2: ' + score2);
+        } else {
+            score1 += 1; // Golo para o jogador 1
+            scoreText1.setText('Jogador 1: ' + score1);
+        }
+        resetPuck.call(this); // Reiniciar a posição do disco e dos jogadores
+    }
+}
+
+function resetPuck() {
+    this.puck.setPosition(450, 300);
+    this.puck.setVelocity(0, 0);
+    this.mallet1.setPosition(150, 300);
+    this.mallet2.setPosition(750, 300);
+}
+
 function goal(puck, goal) {
     // Verificar qual baliza foi atingida
     if (goal === this.leftGoal) {
@@ -170,6 +237,9 @@ function updateTimer() {
 }
 
 function displayEndGame(scene) {
+    // Exibir background para o fim do jogo
+    let background = scene.add.rectangle(450, 300, 900, 600, 0x000000, 0.85).setOrigin(0.5);
+
     // Exibir placar final
     let endText = `Fim do Jogo\nJogador 1: ${score1}\nJogador 2: ${score2}`;
     let endGameText = scene.add.text(450, 300, endText, { fontSize: '48px', fill: '#FFF', align: 'center' }).setOrigin(0.5);
@@ -184,6 +254,7 @@ function displayEndGame(scene) {
     // Adicionar evento para a tecla ESPAÇO
     playAgainKey.on('down', () => {
         gameOver = false;
+        background.destroy();
         score1 = 0;
         score2 = 0;
         gameTime = 180;
@@ -195,6 +266,11 @@ function displayEndGame(scene) {
         scene.puck.setPosition(450, 300);
         scene.mallet1.setPosition(150, 300);
         scene.mallet2.setPosition(750, 300);
+        // Reiniciar cores e estados das balizas
+        scene.goals.forEach(goal => {
+            goal.setFillStyle(0xff0000); // Vermelho
+            goal.state = 'red';
+        });
     });
 }
 
@@ -239,3 +315,4 @@ function update() {
         this.mallet2.setVelocityY(0);
     }
 }
+
