@@ -33,8 +33,8 @@ const maxPuckSpeed = 600; // Velocidade máxima do disco
 function preload() {
     this.load.image('table', 'assets/table.png');
     this.load.image('puck', 'assets/puck.png');
-    this.load.image('mallet1', 'assets/mallet1.png');
-    this.load.image('mallet2', 'assets/mallet2.png');
+    this.load.image('mallet1', 'assets/mallet.png');
+    this.load.image('mallet2', 'assets/mallet.png');
     this.load.spritesheet('explosion', 'assets/explosion.png', { frameWidth: 64, frameHeight: 64 });
 }
 
@@ -76,16 +76,16 @@ function create() {
     this.barrierRight = this.add.rectangle(852, 300, 18, 500).setOrigin(0, 0.5);
     this.physics.add.existing(this.barrierRight, true);
 
-    this.barrierTop = this.add.rectangle(450, 45, 820, 10).setOrigin(0.5, 0);
+    this.barrierTop = this.add.rectangle(450, 43, 820, 10).setOrigin(0.5, 0);
     this.physics.add.existing(this.barrierTop, true);
 
-    this.barrierBottom = this.add.rectangle(450, 555, 820, 10).setOrigin(0.5, 0);
+    this.barrierBottom = this.add.rectangle(450, 548, 820, 10).setOrigin(0.5, 0);
     this.physics.add.existing(this.barrierBottom, true);
 
     // Adicionar disco e mallets
-    this.puck = this.physics.add.image(450, 300, 'puck').setCollideWorldBounds(true).setBounce(0.9, 0.9).setCircle(20);
-    this.mallet1 = this.physics.add.image(150, 300, 'mallet1').setCollideWorldBounds(true).setImmovable(true).setCircle(40);
-    this.mallet2 = this.physics.add.image(750, 300, 'mallet2').setCollideWorldBounds(true).setImmovable(true).setCircle(40);
+    this.puck = this.physics.add.image(450, 300, 'puck').setCollideWorldBounds(true).setBounce(0.9, 0.9).setCircle(1200).setScale(0.02);
+    this.mallet1 = this.physics.add.image(150, 300, 'mallet1').setCollideWorldBounds(true).setImmovable(true).setCircle(245, 50, 50).setScale(0.1);
+    this.mallet2 = this.physics.add.image(750, 300, 'mallet2').setCollideWorldBounds(true).setImmovable(true).setCircle(245, 50, 50).setScale(0.1);
 
     // Adicionar colisões para as barreiras invisíveis
     this.physics.add.collider(this.puck, this.barrierLeft);
