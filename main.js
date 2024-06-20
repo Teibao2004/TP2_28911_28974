@@ -17,7 +17,7 @@ function startGame() {
             default: 'arcade',
             arcade: {
                 gravity: { y: 0 },
-                debug: true
+                debug: false
             }
         },
         scene: {
@@ -72,6 +72,7 @@ function create() {
             this.physics.add.existing(goal, true);
             goal.state = 'red'; // Estado inicial da baliza 
             goal.lastHitTime = 0;
+            goal.cooldown = false;
             this.goals.push(goal);
         }
     }
@@ -114,9 +115,9 @@ function create() {
     this.physics.add.overlap(this.puck, this.goals, hitGoal, null, this);
 
     // Adicionar texto de pontuação
-    scoreText1 = this.add.text(16, 14, 'Jogador 1: 0', { fontSize: '32px', fill: '#FFF' });
-    scoreText2 = this.add.text(660, 14, 'Jogador 2: 0', { fontSize: '32px', fill: '#FFF' });
-    timerText = this.add.text(450, 14, 'Tempo: 180', { fontSize: '32px', fill: '#FFF' }).setOrigin(0.5, 0);
+    scoreText1 = this.add.text(16, 12, 'Jogador 1: 0', { fontSize: '32px', fill: '#FFF' });
+    scoreText2 = this.add.text(650, 12, 'Jogador 2: 0', { fontSize: '32px', fill: '#FFF' });
+    timerText = this.add.text(450, 12, 'Tempo: 180', { fontSize: '32px', fill: '#FFF' }).setOrigin(0.5, 0);
 
     // Configurar controles
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -166,6 +167,7 @@ function hitMallet(puck, mallet) {
 }
 
 function hitGoal(puck, goal) {
+    if (goal.cooldown) return;
     let currentTime = this.time.now; // Obter o tempo atual
 
     // Verificar se o tempo decorrido desde o último toque é maior que 500ms
@@ -211,9 +213,14 @@ function hitGoal(puck, goal) {
             }
             resetPuck.call(this); // Reiniciar a posição do disco e dos jogadores
         }
-
-        // Atualizar o último tempo de toque
+        // Atualizar o último tempo de toque e inicia o cooldown
         goal.lastHitTime = currentTime;
+        goal.cooldown = true;
+
+        // Desativar o cooldown após 1 segundo 
+        this.time.delayedCall(1000, () => {
+            goal.cooldown = false;
+        });
     }
 }
 
