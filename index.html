@@ -5,8 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Air Hockey</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.55.2/phaser.min.js"></script>
-    <script src="main.js"></script>
+    <script src="main.js" defer></script>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #000; 
+        }
+        #startContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #startButton {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 20px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        #gameContainer {
+            width: 900px;
+            height: 600px;
+            display: none; 
+        }
+    </style>
 </head>
 <body>
+    <div id="startContainer">
+        <img id="startBackground" src="assets/background.png" alt="Background" style="display: block;">
+        <button id="startButton">Começar</button>
+    </div>
+    <div id="gameContainer"></div>
 </body>
 </html>

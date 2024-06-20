@@ -1,22 +1,34 @@
-const config = {
-    type: Phaser.AUTO,
-    width: 900,
-    height: 600,
-    physics: {
-        default: 'arcade',
-        arcade: {
-            gravity: { y: 0 },
-            debug: false
+document.addEventListener('DOMContentLoaded', () => {
+    const startButton = document.getElementById('startButton');
+    startButton.addEventListener('click', startGame);
+});
+function startGame() {
+    // Remove o botão "Start" depois de pressionado
+    const startButton = document.getElementById('startButton');
+    startButton.style.display = 'none';
+    const startBackground = document.getElementById('startBackground');
+    startBackground.style.display = 'none';
+
+    const config = {
+        type: Phaser.AUTO,
+        width: 900,
+        height: 600,
+        physics: { 
+            default: 'arcade',
+            arcade: {
+                gravity: { y: 0 },
+                debug: false
+            }
+        },
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
         }
-    },
-    scene: {
-        preload: preload,
-        create: create,
-        update: update
-    }
-};
- 
-const game = new Phaser.Game(config);
+    };
+    
+    const game = new Phaser.Game(config);
+}
 
 let score1 = 0;
 let score2 = 0;
@@ -34,11 +46,11 @@ function preload() {
     this.load.image('table', 'assets/table.png');
     this.load.image('puck', 'assets/puck.png');
     this.load.image('mallet1', 'assets/mallet.png');
-    this.load.image('mallet2', 'assets/mallet.png');
+    this.load.image('mallet2', 'assets/mallet2.png');
     this.load.spritesheet('explosion', 'assets/explosion.png', { frameWidth: 64, frameHeight: 64 });
 }
 
-function create() {
+function create() { 
     // Desenhar a mesa de Air Hockey com ângulos de 90 graus
     let graphics = this.add.graphics();
     graphics.fillStyle(0x00bfff, 1); // cor da mesa
@@ -70,7 +82,7 @@ function create() {
     addGoals.call(this, 855, 75, 525, 50);
 
     // Adicionar barreiras invisíveis para impedir que a bola saia do campo
-    this.barrierLeft = this.add.rectangle(31, 300, 18, 500).setOrigin(0, 0.5);
+    this.barrierLeft = this.add.rectangle(30, 300, 18, 500).setOrigin(0, 0.5);
     this.physics.add.existing(this.barrierLeft, true);
 
     this.barrierRight = this.add.rectangle(852, 300, 18, 500).setOrigin(0, 0.5);
@@ -84,8 +96,8 @@ function create() {
 
     // Adicionar disco e mallets
     this.puck = this.physics.add.image(450, 300, 'puck').setCollideWorldBounds(true).setBounce(0.9, 0.9).setCircle(1200).setScale(0.02);
-    this.mallet1 = this.physics.add.image(150, 300, 'mallet1').setCollideWorldBounds(true).setImmovable(true).setCircle(245, 50, 50).setScale(0.1);
-    this.mallet2 = this.physics.add.image(750, 300, 'mallet2').setCollideWorldBounds(true).setImmovable(true).setCircle(245, 50, 50).setScale(0.1);
+    this.mallet1 = this.physics.add.image(150, 300, 'mallet1').setCollideWorldBounds(true).setImmovable(true).setCircle(247, 50, 55).setScale(0.1);
+    this.mallet2 = this.physics.add.image(750, 300, 'mallet2').setCollideWorldBounds(true).setImmovable(true).setCircle(327, 28, 25).setScale(0.075);
 
     // Adicionar colisões para as barreiras invisíveis
     this.physics.add.collider(this.puck, this.barrierLeft);
@@ -101,9 +113,9 @@ function create() {
     this.physics.add.overlap(this.puck, this.goals, hitGoal, null, this);
 
     // Adicionar texto de pontuação
-    scoreText1 = this.add.text(16, 16, 'Jogador 1: 0', { fontSize: '32px', fill: '#FFF' });
-    scoreText2 = this.add.text(660, 16, 'Jogador 2: 0', { fontSize: '32px', fill: '#FFF' });
-    timerText = this.add.text(450, 16, 'Tempo: 180', { fontSize: '32px', fill: '#FFF' }).setOrigin(0.5, 0);
+    scoreText1 = this.add.text(16, 14, 'Jogador 1: 0', { fontSize: '32px', fill: '#FFF' });
+    scoreText2 = this.add.text(660, 14, 'Jogador 2: 0', { fontSize: '32px', fill: '#FFF' });
+    timerText = this.add.text(450, 14, 'Tempo: 180', { fontSize: '32px', fill: '#FFF' }).setOrigin(0.5, 0);
 
     // Configurar controles
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -129,7 +141,7 @@ function create() {
     this.mallet1.setCollideWorldBounds(true);
     this.mallet1.body.setBoundsRectangle(new Phaser.Geom.Rectangle(50, 50, 400, 500));
     this.mallet2.setCollideWorldBounds(true);
-    this.mallet2.body.setBoundsRectangle(new Phaser.Geom.Rectangle(450, 50, 400, 500));
+    this.mallet2.body.setBoundsRectangle(new Phaser.Geom.Rectangle(450, 50, 400, 500));    
 }
 
 function hitMallet(puck, mallet) {
@@ -216,12 +228,6 @@ function goal(puck, goal) {
     // Reiniciar a posição do disco
     this.puck.setPosition(450, 300);
     this.puck.setVelocity(0, 0);
-
-    // Verificar se algum jogador atingiu 7 golos
-    if (score1 >= 7 || score2 >= 7) {
-        gameOver = true;
-        displayEndGame(this);
-    }
 }
 
 function updateTimer() {
@@ -315,4 +321,3 @@ function update() {
         this.mallet2.setVelocityY(0);
     }
 }
-
