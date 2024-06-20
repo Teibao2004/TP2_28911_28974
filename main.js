@@ -17,7 +17,7 @@ function startGame() {
             default: 'arcade',
             arcade: {
                 gravity: { y: 0 },
-                debug: false
+                debug: true
             }
         },
         scene: {
@@ -71,6 +71,7 @@ function create() {
             let goal = this.add.rectangle(x, y + 8, 8, step, 0xff0000).setOrigin(0.5, 0.5);
             this.physics.add.existing(goal, true);
             goal.state = 'red'; // Estado inicial da baliza 
+            goal.lastHitTime = 0;
             this.goals.push(goal);
         }
     }
@@ -97,7 +98,7 @@ function create() {
     // Adicionar disco e mallets
     this.puck = this.physics.add.image(450, 300, 'puck').setCollideWorldBounds(true).setBounce(0.9, 0.9).setCircle(1200).setScale(0.02);
     this.mallet1 = this.physics.add.image(150, 300, 'mallet1').setCollideWorldBounds(true).setImmovable(true).setCircle(247, 50, 55).setScale(0.1);
-    this.mallet2 = this.physics.add.image(750, 300, 'mallet2').setCollideWorldBounds(true).setImmovable(true).setCircle(327, 28, 25).setScale(0.075);
+    this.mallet2 = this.physics.add.image(750, 300, 'mallet2').setCollideWorldBounds(true).setImmovable(true).setCircle(326, 28, 24).setScale(0.075);
 
     // Adicionar colisões para as barreiras invisíveis
     this.physics.add.collider(this.puck, this.barrierLeft);
@@ -165,46 +166,54 @@ function hitMallet(puck, mallet) {
 }
 
 function hitGoal(puck, goal) {
-    // Mudar a cor da baliza baseada no estado atual
-    if (goal.state === 'red') {
-        goal.setFillStyle(0xffff00); // Amarelo
-        goal.state = 'yellow';
-    } else if (goal.state === 'yellow') {
-        goal.setFillStyle(0x000000); // Mudar para preto
-        goal.state = 'black';
-    
-        // Criar a animação da explosão se não foi criada ainda
-        if (!this.anims.exists('explode')) {
-            this.anims.create({
-                key: 'explode',
-                frames: this.anims.generateFrameNumbers('explosion', { start: 0, end: 5 }),
-                frameRate: 16,
-                repeat: 0,
-                hideOnComplete: true
+    let currentTime = this.time.now; // Obter o tempo atual
+
+    // Verificar se o tempo decorrido desde o último toque é maior que 500ms
+    if (currentTime - goal.lastHitTime > 500) {
+        // Mudar a cor da baliza baseada no estado atual
+        if (goal.state === 'red') {
+            goal.setFillStyle(0xffff00); // Amarelo
+            goal.state = 'yellow';
+        } else if (goal.state === 'yellow') {
+            goal.setFillStyle(0x000000); // Mudar para preto
+            goal.state = 'black';
+        
+            // Criar a animação da explosão se não foi criada ainda
+            if (!this.anims.exists('explode')) {
+                this.anims.create({
+                    key: 'explode',
+                    frames: this.anims.generateFrameNumbers('explosion', { start: 0, end: 5 }),
+                    frameRate: 16,
+                    repeat: 0,
+                    hideOnComplete: true
+                });
+            }
+        
+            // Exibir a explosão na posição da baliza
+            let explosion = this.add.sprite(goal.x + 16, goal.y, 'explosion');
+            explosion.setVisible(true);
+            explosion.play('explode'); // Iniciar a animação de explosão
+            explosion.setScale(0.7);
+            explosion.angle = 90; 
+        
+            explosion.play('explode');
+            explosion.once('animationcomplete', () => {
+                explosion.destroy(); // Destruir o sprite após a animação completar
             });
+        } else if (goal.state === 'black') {
+            // Marcar um ponto para o jogador apropriado
+            if (goal.x < 450) {
+                score2 += 1; // Golo para o jogador 2
+                scoreText2.setText('Jogador 2: ' + score2);
+            } else {
+                score1 += 1; // Golo para o jogador 1
+                scoreText1.setText('Jogador 1: ' + score1);
+            }
+            resetPuck.call(this); // Reiniciar a posição do disco e dos jogadores
         }
-    
-        // Exibir a explosão na posição da baliza
-        explosion = this.add.sprite(goal.x + 16, goal.y, 'explosion');
-        explosion.setVisible(true);
-        explosion.play('explode'); // Iniciar a animação de explosão
-        explosion.setScale(0.7);
-        explosion.angle = 90; 
-    
-        explosion.play('explode');
-        explosion.once('animationcomplete', () => {
-            explosion.destroy(); // Destruir o sprite após a animação completar
-        });
-    }else if (goal.state === 'black') {
-        // Marcar um ponto para o jogador apropriado
-        if (goal.x < 450) {
-            score2 += 1; // Golo para o jogador 2
-            scoreText2.setText('Jogador 2: ' + score2);
-        } else {
-            score1 += 1; // Golo para o jogador 1
-            scoreText1.setText('Jogador 1: ' + score1);
-        }
-        resetPuck.call(this); // Reiniciar a posição do disco e dos jogadores
+
+        // Atualizar o último tempo de toque
+        goal.lastHitTime = currentTime;
     }
 }
 
