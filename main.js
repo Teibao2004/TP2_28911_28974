@@ -148,7 +148,7 @@ function create() {
     this.mallet2.body.setBoundsRectangle(new Phaser.Geom.Rectangle(450, 50, 400, 500));    
 
     // Criar um power-up após um intervalo de tempo 
-    this.time.delayedCall(10000, () => {
+    this.time.delayedCall(20000, () => {
         this.powerUp = this.physics.add.image(450, 300, 'powerUp').setCircle(1000, 28, 24).setScale(0.02);
         this.physics.add.overlap(this.mallet1, this.powerUp, collectPowerUp, null, this);
         this.physics.add.overlap(this.mallet2, this.powerUp, collectPowerUp, null, this);
@@ -364,7 +364,7 @@ function collectPowerUp(mallet, powerUp) {
     });
 
     // Recriar o item especial após um intervalo de tempo
-    this.time.delayedCall(10000, () => {
+    this.time.delayedCall(20000, () => {
         this.powerUp = this.physics.add.image(450, 300, 'powerUp').setCircle(1000, 28, 24).setScale(0.02);
         this.physics.add.overlap(this.mallet1, this.powerUp, collectPowerUp, null, this);
         this.physics.add.overlap(this.mallet2, this.powerUp, collectPowerUp, null, this);
