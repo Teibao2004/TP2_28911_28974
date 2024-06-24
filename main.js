@@ -17,7 +17,7 @@ function startGame() {
             default: 'arcade',
             arcade: {
                 gravity: { y: 0 },
-                debug: false
+                debug: true
             }
         },
         scene: {
@@ -48,6 +48,7 @@ function preload() {
     this.load.image('mallet1', 'assets/mallet.png');
     this.load.image('mallet2', 'assets/mallet2.png');
     this.load.spritesheet('explosion', 'assets/explosion.png', { frameWidth: 64, frameHeight: 64 });
+    this.load.image('powerUp', 'assets/powerUp.png');
 }
 
 function create() { 
@@ -100,6 +101,7 @@ function create() {
     this.puck = this.physics.add.image(450, 300, 'puck').setCollideWorldBounds(true).setBounce(0.9, 0.9).setCircle(1200).setScale(0.02);
     this.mallet1 = this.physics.add.image(150, 300, 'mallet1').setCollideWorldBounds(true).setImmovable(true).setCircle(247, 50, 55).setScale(0.1);
     this.mallet2 = this.physics.add.image(750, 300, 'mallet2').setCollideWorldBounds(true).setImmovable(true).setCircle(326, 28, 24).setScale(0.075);
+    
 
     // Adicionar colisões para as barreiras invisíveis
     this.physics.add.collider(this.puck, this.barrierLeft);
@@ -336,4 +338,28 @@ function update() {
     } else {
         this.mallet2.setVelocityY(0);
     }
+}
+function collectPowerUp(mallet, powerUp) {
+    powerUp.destroy(); // Remove o item do campo
+
+    // Restaurar duas balizas aleatórias para o jogador que coletou o item
+    let playerGoals = mallet === this.mallet1 ? this.goals.filter(goal => goal.x < 450) : this.goals.filter(goal => goal.x > 450);
+    let shuffledGoals = Phaser.Utils.Array.Shuffle(playerGoals);
+
+    let restoredGoals = 0;
+
+    shuffledGoals.forEach(goal => {
+        if (restoredGoals < 2 && goal.state !== 'red') {
+            goal.setFillStyle(0xff0000); // Restaurar para vermelho
+            goal.state = 'red';
+            restoredGoals++;
+        }
+    });
+
+    // Recriar o item especial após um intervalo de tempo
+    this.time.delayedCall(10000, () => {
+        this.powerUp = this.physics.add.image(450, 300, 'powerUp').setCircle(1000, 28, 24).setScale(0.02);
+        this.physics.add.overlap(this.mallet1, this.powerUp, collectPowerUp, null, this);
+        this.physics.add.overlap(this.mallet2, this.powerUp, collectPowerUp, null, this);
+    });
 }
