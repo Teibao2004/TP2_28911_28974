@@ -179,8 +179,8 @@ function hitGoal(puck, goal) {
     if (goal.cooldown) return;
     let currentTime = this.time.now; // Obter o tempo atual
 
-    // Verificar se o tempo decorrido desde o último toque é maior que 500ms
-    if (currentTime - goal.lastHitTime > 500) {
+    // Verificar se o tempo decorrido desde o último toque é maior que 200ms
+    if (currentTime - goal.lastHitTime > 200) {
         // Mudar a cor da baliza baseada no estado atual
         if (goal.state === 'red') {
             goal.setFillStyle(0xffff00); // Amarelo
@@ -221,6 +221,12 @@ function hitGoal(puck, goal) {
                 scoreText1.setText('Jogador 1: ' + score1);
             }
             resetPuck.call(this); // Reiniciar a posição do disco e dos jogadores
+
+            // Verificar condição de fim de jogo (Primeiro a chegar aos 7 golos)
+            if (score1 >= 7 || score2 >= 7) {
+                gameOver = true;
+                displayEndGame(this);
+            }
         }
         // Atualizar o último tempo de toque e inicia o cooldown
         goal.lastHitTime = currentTime;
@@ -240,20 +246,6 @@ function resetPuck() {
     this.mallet2.setPosition(750, 300);
 }
 
-function goal(puck, goal) {
-    // Verificar qual baliza foi atingida
-    if (goal === this.leftGoal) {
-        score2 += 1; // Golo para o jogador 2
-        scoreText2.setText('Jogador 2: ' + score2);
-    } else {
-        score1 += 1; // Golo para o jogador 1
-        scoreText1.setText('Jogador 1: ' + score1);
-    }
-
-    // Reiniciar a posição do disco
-    this.puck.setPosition(450, 300);
-    this.puck.setVelocity(0, 0);
-}
 
 function updateTimer() {
     if (!gameOver) {
